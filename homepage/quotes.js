@@ -9,13 +9,13 @@ let quotes= ()=> {
     body: new URLSearchParams( {
      method:'getQuote',
      key:457653,
-     format:'json',
+     format:'xml',
      lang:'en',
      
     }),
   })
   
-  .then(  res=>   res.json())
+  .then(  res=>   res.text())
   .then(data => {
     console.log(data.quoteText)
      console.log(data.quoteAuthor)})
