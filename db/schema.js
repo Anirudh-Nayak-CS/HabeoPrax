@@ -13,6 +13,14 @@ email: {
   type:String,
   required:true,
   unique:true,
+},
+mood: {
+ type:String,
+},
+password:{
+  type:String,
+  required:true,
+  unique:true,
 }
 
 })
@@ -24,10 +32,15 @@ const HabitSchema=new schema({
     unique:true,
   },
   duration: {
-    type:String,
+    type:Number,
     required:true,
    
   },
+  timesperday:{
+    type:Number,
+    required:true,
+  },
+
   days:{
     type:[String],
   required:true,
@@ -43,4 +56,16 @@ const HabitSchema=new schema({
   required:true,
   },
   streakcount:Number,
+  icon: {
+    category:{
+    type:String,
+    required:true,
+   },
+   url:{
+    type:String,
+    required:true,
+   },
+  },
+  
+  setReminder:Boolean,
 })
