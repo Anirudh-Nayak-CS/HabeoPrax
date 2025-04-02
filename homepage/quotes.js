@@ -9,16 +9,16 @@ let quotes= ()=> {
     body: new URLSearchParams( {
      method:'getQuote',
      key:457653,
-     format:'xml',
+     format:'json',
      lang:'en',
      
     }),
   })
   
-  .then(  res=>   res.text())
+  .then(  res=>   res.json())
   .then(data => {
-    console.log(data.quoteText)
-     console.log(data.quoteAuthor)})
+    console.log(`Quote: ${data.quoteText || 'No quote available'}`)
+     console.log(`Author: ${data.quoteAuthor|| 'Unknown'}`)})
   
   .catch(  e=> {console.log(`Error in fetching the quote`,e)}) }
 
