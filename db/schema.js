@@ -14,9 +14,7 @@ email: {
   required:true,
   unique:true,
 },
-mood: {
- type:String,
-},
+
 password:{
   type:String,
   required:true,
@@ -69,3 +67,10 @@ const HabitSchema=new schema({
   
   setReminder:Boolean,
 })
+
+const Userschema=mongoose.model("Userschema",UserSchema);
+const Habitschema=mongoose.model("Habitschema",HabitSchema);
+
+module.exports={
+  Userschema,Habitschema
+}
