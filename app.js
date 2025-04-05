@@ -20,11 +20,13 @@ connecttoDB((err) => {
   if(!err) {
     db=getDB()
   app.post('/register',(req,res)=> {
+
+    db=getDB();
     Userschema.create(req.body)
     .then((data) => res.json(data))
     .catch((e)=> res.json(e))
   })
-  app.get('/login',(req,res)=> {
+  app.post('/login',(req,res)=> {
     const {email,password}=req.body;
     Userschema.findOne({email:email})
     .then(user => {
@@ -45,6 +47,9 @@ app.listen(PORT,() => {
 })
   
  
+  }
+  else {
+   res.status(500).json({error:"An  internal error  occured"})
   }
 }
 )

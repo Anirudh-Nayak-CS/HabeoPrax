@@ -24,7 +24,7 @@ password:{
 })
 
 const HabitSchema=new Schema({
-  name: {
+  habitname: {
     type:String,
     required:true,
     unique:true,
@@ -38,34 +38,23 @@ const HabitSchema=new Schema({
     type:Number,
     required:true,
   },
-
+  primarytime:{
+    type:String,
+    required:true,
+  },
   days:{
     type:[String],
   required:true,
   
   },
-  reminder:Number,
-  time:{ 
-    type:String,
-    required:true,
-  },
+  
   completion: {
     type:Boolean,
   required:true,
   },
-  streakcount:Number,
-  icon: {
-    category:{
-    type:String,
-    required:true,
-   },
-   url:{
-    type:String,
-    required:true,
-   },
-  },
-  
   setReminder:Boolean,
+  streakcount:Number, 
+  
 })
 
 const Userschema=model("Userschema",UserSchema);
