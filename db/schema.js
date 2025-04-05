@@ -1,9 +1,9 @@
 const mongoose=require('mongoose')
 
-const schema=mongoose.Schema()
+const {Schema,model}=mongoose;
 
 
-const UserSchema=new schema({
+const UserSchema=new Schema({
 username: {
   type:String,
   required:true,
@@ -18,12 +18,12 @@ email: {
 password:{
   type:String,
   required:true,
-  unique:true,
+ 
 }
 
 })
 
-const HabitSchema=new schema({
+const HabitSchema=new Schema({
   name: {
     type:String,
     required:true,
@@ -68,8 +68,8 @@ const HabitSchema=new schema({
   setReminder:Boolean,
 })
 
-const Userschema=mongoose.model("Userschema",UserSchema);
-const Habitschema=mongoose.model("Habitschema",HabitSchema);
+const Userschema=model("Userschema",UserSchema);
+const Habitschema=model("Habitschema",HabitSchema);
 
 module.exports={
   Userschema,Habitschema
