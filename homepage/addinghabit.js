@@ -23,6 +23,8 @@ connecttoDB((err)=>  {
      }
 })
 
+module.exports= router
+
 
 
 
