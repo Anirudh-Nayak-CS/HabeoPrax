@@ -57,8 +57,8 @@ const HabitSchema=new Schema({
   
 })
 
-const Userschema=model("Userschema",UserSchema);
-const Habitschema=model("Habitschema",HabitSchema);
+const Usermodel=model("Userschema",UserSchema);
+const Habitmodel=model("Habitschema",HabitSchema);
 
 module.exports={
   Userschema,Habitschema

@@ -10,13 +10,12 @@ module.exports=(passport) =>  {
 
   passport.use(new JwtStrategy(jwtfromRequest, (jwt_payload, done) => {
  
-    Userschema.findById(jwt_payload.id)
+    Usermodel.findById(jwt_payload.id)
       .then(user => {
       
         if (user) {
           return done(null, user);
         }
-        
         return done(null, false);
       })
   
