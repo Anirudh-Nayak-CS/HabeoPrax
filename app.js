@@ -7,12 +7,17 @@ const {connecttoDB,getDB}=require("./db/connection")
 const cors=require('cors')
 const mongoose=require('mongoose')
 const {Userschema,Habitschema}=require('./db/schema')
-
+const addinghabit=require('./homepage/addinghabit')
+const passport=require('passport')
+const jwt=require('jsonwebtoken')
 
 let db
 app.use('/home',homerouter)
 app.use(express.json())
+app.use(express.urlencoded({extended:true}))
 app.use(cors())
+app.use(passport.initialize())
+require("./config/jwtstrategy")
 
 
 
@@ -27,12 +32,29 @@ connecttoDB((err) => {
     .catch((e)=> res.json(e))
   })
   app.post('/login',(req,res)=> {
-    const {email,password}=req.body;
+    const {username,email,password}=req.body;
+    
     Userschema.findOne({email:email})
     .then(user => {
       if(user) {
-        if(user.password===password)
-          res.json("success")
+        if(user.password===password) {
+          const payload={
+            id:user.id,
+            username:user.username,
+            email:user.email,
+          }
+          jwt.sign (payload,process.env.JWT_secret,{expiresIn:"1hr"},(err,token) =>{
+            if(err)
+              console.log("Error signing token ",err)
+
+            res.json({
+              success:true,
+              token: 'Bearer '+ token,
+              
+            })
+          })
+        }
+         
         else 
         res.json("wrong password,try again")
       }
@@ -41,7 +63,7 @@ connecttoDB((err) => {
     })
     .catch(e => res.json(e))
   })
-
+  
 app.listen(PORT,() => {
   console.log(`listening to ${PORT}`)
 })
