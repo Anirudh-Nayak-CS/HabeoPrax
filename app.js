@@ -36,7 +36,7 @@ connecttoDB((err) => {
     })
 
     app.post('/login', (req, res) => {
-      const { username, email, password } = req.body;
+      const {username, email, password } = req.body;
 
       Usermodel.findOne({ email: email })
         .then((user) => {
@@ -54,7 +54,9 @@ connecttoDB((err) => {
 
                 jwt.sign(payload, process.env.JWT_secret, { expiresIn: "1hr" }, (err, token) => {
                   if (err)
-                    console.log("Error signing token ", err)
+                    return res.json( {
+                  message:"Error signing token ",
+                  error:err.message||err,})
 
                   res.json({
                     success: true,
@@ -73,6 +75,6 @@ connecttoDB((err) => {
       console.log(`listening to ${PORT}`)
     })
   } else {
-    console.error("An  internal error  occured")
+    console.error("DB Connection failed")
   }
 })

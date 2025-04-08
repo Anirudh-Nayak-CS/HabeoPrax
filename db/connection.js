@@ -1,6 +1,15 @@
 const {MongoClient}=require('mongodb')
 let dbConnection
-let uri="mongodb+srv://anirudhnayak:anininniboy2006@cluster0.4pb9n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+require('dotenv').config()
+let username=process.env.DB_USERNAME
+let pw=process.env.DB_PW
+let cluster=process.env.DB_CLUSTER
+let dbname=process.env.DB_NAME
+
+
+let uri=`mongodb+srv://${username}:${pw}@${cluster}/?retryWrites=true&w=majority&appName=${dbname}`
+
+
 const connecttoDB= (cb) => {
 MongoClient.connect(uri)
 .then((client)=> {
