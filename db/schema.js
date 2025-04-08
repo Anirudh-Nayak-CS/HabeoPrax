@@ -61,5 +61,5 @@ const Usermodel=model("Userschema",UserSchema);
 const Habitmodel=model("Habitschema",HabitSchema);
 
 module.exports={
-  Userschema,Habitschema
+  Usermodel,Habitmodel
 }

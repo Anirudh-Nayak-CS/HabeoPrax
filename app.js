@@ -28,24 +28,38 @@ connecttoDB((err) => {
       bcrypt.hash(req.body.password, saltRound)
         .then((hashedpassword) => {
           req.body.password = hashedpassword
+          console.log("Hashed password: ",hashedpassword)
           Usermodel.create(req.body)
-            .then((data) => res.json(data))
-            .catch((e) => res.json(e))
+            .then((data) => {
+              console.log("User data: ",data)
+              res.json(data)
         })
-        .catch((e) => console.log(e))
+            .catch((e) => {
+              console.log("Error creating user")
+              res.json(e)
+        })
+        })
+        .catch((e) => {
+          console.log("Error hashing pw")
+          console.log(e)
+    })
     })
 
     app.post('/login', (req, res) => {
       const {username, email, password } = req.body;
+      console.log(email)
+      console.log(username)
+      console.log(password)
 
       Usermodel.findOne({ email: email })
         .then((user) => {
           if (user) {
             bcrypt.compare(password, user.password)
               .then(isMatch => {
-                if (!isMatch)
-                  return res.json("wrong password,try again")
-
+                if (!isMatch){
+                console.log("No user found try again")
+                  return res.json("No user found try again")
+                }
                 const payload = {
                   id: user.id,
                   username: user.username,
@@ -53,11 +67,12 @@ connecttoDB((err) => {
                 }
 
                 jwt.sign(payload, process.env.JWT_secret, { expiresIn: "1hr" }, (err, token) => {
-                  if (err)
+                  if (err) {
+                    console.log("Error signing token")
                     return res.json( {
                   message:"Error signing token ",
                   error:err.message||err,})
-
+                    }
                   res.json({
                     success: true,
                     token: 'Bearer ' + token,
@@ -68,7 +83,9 @@ connecttoDB((err) => {
           else
             res.json("You don't have an account,kindly register")
         })
-        .catch(e => res.json(e))
+        .catch(e =>  {
+          console.log("Error logging in")
+          res.json(e)})
     })
 
     app.listen(PORT, () => {

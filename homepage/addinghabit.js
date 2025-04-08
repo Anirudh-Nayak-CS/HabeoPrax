@@ -1,6 +1,6 @@
 const express=require('express')
-const homerouter=require('./homepage/home')
-const {connecttoDB,getDB}=require("./db/connection")
+const homerouter=require('./home')
+const {connecttoDB,getDB}=require("../db/connection")
 
 const router=express.Router()
 
@@ -19,7 +19,8 @@ connecttoDB((err)=>  {
       }) 
     }
     else {
-      res.status(500).json({error:"An  internal error  occured"})
+      console.log("An internal error occurered")
+     
      }
 })
 
