@@ -7,17 +7,18 @@ let cluster=process.env.DB_CLUSTER
 let DBNAME=process.env.DBNAME
 
 
-let uri=`mongodb+srv://${username}:${pw}@${cluster}.mongodb.net/${DBNAME}?retryWrites=true&w=majority`
+let uri=`mongodb+srv://${username}:${pw}@${cluster}.mongodb.net/?retryWrites=true&w=majority&appName=${DBNAME}`
 
 
 const connecttoDB= (cb) => {
 MongoClient.connect(uri)
 .then((client)=> {
   dbConnection=client.db()
+  console.log("success")
   return cb()
 })
 .catch((e)=> {
-  console.log("not connected")
+  console.log("An internal error occured")
   return cb(e)
 })
 
