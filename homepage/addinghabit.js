@@ -14,14 +14,7 @@ connecttoDB((err)=>  {
         .catch((e) => res.json(e))
 
       })
-      app.listen(PORT,() => {
-        console.log(`listening to ${PORT}`)
-      }) 
     }
-    else {
-      console.log("An internal error occurered")
-     
-     }
 })
 
 module.exports= router
