@@ -54,8 +54,8 @@ const HabitSchema=new mongoose.Schema({
   
 })
 
-const Usermodel=model("Userschema",UserSchema);
-const Habitmodel=model("Habitschema",HabitSchema);
+const Usermodel= new mongoose.model("Userschema",UserSchema);
+const Habitmodel=new mongoose.model("Habitschema",HabitSchema);
 
 module.exports={
   Usermodel,Habitmodel

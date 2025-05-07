@@ -5,7 +5,6 @@ const PORT = process.env.PORT || 5000
 const homerouter = require('./homepage/home')
 const { connecttoDB, getDB } = require("./db/connection")
 const cors = require('cors')
-const mongoose = require('mongoose')
 const { Usermodel, Habitmodel } = require('./db/schema')
 const addinghabit = require('./homepage/addinghabit')
 const passport = require('passport')
@@ -25,6 +24,7 @@ connecttoDB((err) => {
   if (!err) {
     db = getDB()
     app.post('/register', (req, res) => {
+      console.log(req.body)
       console.log("Incoming request body:", req.body);
       bcrypt.hash(req.body.password, saltRound)
         .then((hashedpassword) => {
@@ -33,16 +33,16 @@ connecttoDB((err) => {
           Usermodel.create(req.body)
             .then((data) => {
               console.log("User data: ",data)
-              res.status(201).json(data)
+             return  res.status(201).json(data)
         })
             .catch((e) => {
               console.log("Error creating user")
-              res.status(500).json({success:false, message:"Error creating user", error:e.message})
+             return  res.status(500).json({success:false, message:"Error creating user", error:e.message})
         })
         })
         .catch((e) => {
           console.log("Error hashing the  password")
-          res.status(500).json({success:false, message:"Error hashing the password", error:e.message})
+         return  res.status(500).json({success:false, message:"Error hashing the password", error:e.message})
     })
     })
     
