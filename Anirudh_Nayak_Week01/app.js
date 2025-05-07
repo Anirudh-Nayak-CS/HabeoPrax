@@ -25,6 +25,7 @@ connecttoDB((err) => {
   if (!err) {
     db = getDB()
     app.post('/register', (req, res) => {
+      console.log("Incoming request body:", req.body);
       bcrypt.hash(req.body.password, saltRound)
         .then((hashedpassword) => {
           req.body.password = hashedpassword
@@ -32,16 +33,16 @@ connecttoDB((err) => {
           Usermodel.create(req.body)
             .then((data) => {
               console.log("User data: ",data)
-              res.json(data)
+              res.status(201).json(data)
         })
             .catch((e) => {
               console.log("Error creating user")
-              res.json(e)
+              res.status(500).json({success:false, message:"Error creating user", error:e.message})
         })
         })
         .catch((e) => {
-          console.log("Error hashing pw")
-          console.log(e)
+          console.log("Error hashing the  password")
+          res.status(500).json({success:false, message:"Error hashing the password", error:e.message})
     })
     })
     

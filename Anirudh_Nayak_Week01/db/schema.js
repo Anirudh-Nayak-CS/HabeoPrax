@@ -1,9 +1,6 @@
 const mongoose=require('mongoose')
 
-const {Schema,model}=mongoose;
-
-
-const UserSchema=new Schema({
+const UserSchema=new mongoose.Schema({
 username: {
   type:String,
   required:true,
@@ -23,7 +20,7 @@ password:{
 
 })
 
-const HabitSchema=new Schema({
+const HabitSchema=new mongoose.Schema({
   habitname: {
     type:String,
     required:true,

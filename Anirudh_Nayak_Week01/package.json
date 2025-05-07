@@ -20,6 +20,7 @@
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1"
+    "passport-jwt": "^4.0.1",
+    "react-router-dom": "^7.5.3"
   }
 }
