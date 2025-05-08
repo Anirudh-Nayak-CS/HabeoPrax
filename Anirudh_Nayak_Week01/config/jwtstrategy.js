@@ -1,14 +1,16 @@
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const Userschema=require('../db/schema')
-
+const {Usermodel}=require('../db/schema')
+const path=require('path')
 const jwtfromRequest=ExtractJwt.fromAuthHeaderAsBearerToken();
-require('dotenv').config()
-secretkey=process.env.JWT_SECRET
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env')
+});
+const secretkey=process.env.JWT_SECRET
 
 module.exports=(passport) =>  {
 
-  passport.use(new JwtStrategy(jwtfromRequest, (jwt_payload, done) => {
+  passport.use(new JwtStrategy( {jwtfromRequest: jwtfromRequest, secretOrkey:secretkey}, (jwt_payload, done) => {
  
     Usermodel.findById(jwt_payload.id)
       .then(user => {

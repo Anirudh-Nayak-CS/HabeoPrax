@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
 require('dotenv').config()
-const PORT = process.env.PORT || 5000
+
+const PORT = process.env.PORT
 const homerouter = require('./homepage/home')
 const { connecttoDB, getDB } = require("./db/connection")
 const cors = require('cors')
@@ -11,21 +12,20 @@ const passport = require('passport')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
-let db
-app.use('/home', homerouter)
+
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app.use('/home', homerouter)
 app.use(passport.initialize())
 require("./config/jwtstrategy")
 const saltRound = 10
 
-connecttoDB((err) => {
+ connecttoDB((err) => {
+  console.log("trying to connect")
   if (!err) {
-    db = getDB()
-    app.post('/register', (req, res) => {
-      console.log(req.body)
-      console.log("Incoming request body:", req.body);
+  
+   app.post('/register', (req, res) => {
       bcrypt.hash(req.body.password, saltRound)
         .then((hashedpassword) => {
           req.body.password = hashedpassword
@@ -37,7 +37,8 @@ connecttoDB((err) => {
         })
             .catch((e) => {
               console.log("Error creating user")
-             return  res.status(500).json({success:false, message:"Error creating user", error:e.message})
+              return  res.status(500).json({success:false, message:"Error creating user", error:e.message})
+           
         })
         })
         .catch((e) => {
@@ -68,7 +69,7 @@ connecttoDB((err) => {
                   email: user.email,
                 }
 
-                jwt.sign(payload, process.env.JWT_secret, { expiresIn: "1hr" }, (err, token) => {
+                jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1hr" }, (err, token) => {
                   if (err) {
                     console.log("Error signing token")
                     return res.json( {
@@ -83,17 +84,22 @@ connecttoDB((err) => {
               })
           }
           else
-            res.json("You don't have an account,kindly register")
+           return res.json("You don't have an account,kindly register")
         })
         .catch(e =>  {
           console.log("Error logging in")
-          res.json(e)})
+         return res.json(e)})
     })
-
+        console.log("db connection :D")
+      
+          
     app.listen(PORT, () => {
       console.log(`listening to ${PORT}`)
     })
   } else {
     console.error("DB Connection failed")
+    app.listen(PORT, () => {
+      console.log(`listening to ${PORT}`)
+    })
   }
 })

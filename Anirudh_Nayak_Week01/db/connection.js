@@ -1,29 +1,39 @@
-const { MongoClient } = require('mongodb');
-const path=require('path')
+const mongoose = require('mongoose');
+const path = require('path');
 require('dotenv').config({
   path: path.resolve(__dirname, '../.env')
 });
+
 let dbconnection;
-let uri=process.env.URI
+const uri = process.env.URI;
 
-async function connecttoDB(){
- try {
-const client=await MongoClient.connect(uri)
+function connecttoDB(cb) {
+  mongoose.connect(uri)
+  .then(() => {
+    dbconnection = mongoose.connection.db;
 
-  dbconnection=client.db()
-  return dbconnection
- }
- catch (e) {
-  console.log(e)
-  throw e
- }
+
+    console.log(" Connected DB name:", mongoose.connection.name);
+
+    mongoose.connection.db.listCollections().toArray()
+      .then(cols => {
+        console.log(" Collections in this DB:", cols.map(c => c.name));
+        cb(null); 
+      })
+      .catch(err => {
+        console.error("listCollections error:", err);
+        cb(null); 
+      });
+
+  })
+  .catch(err => {
+    console.error(" Mongoose connect failed:", err.message);
+    cb(err); 
+  });
 }
 
-const getDB=()=> {
-  return dbconnection
-}
+const getDB = () => dbconnection;
 
-module.exports={
-  connecttoDB,getDB
-}
-
+module.exports = {
+  connecttoDB, getDB
+};

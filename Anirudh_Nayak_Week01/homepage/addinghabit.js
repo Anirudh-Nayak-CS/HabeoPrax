@@ -4,18 +4,13 @@ const {connecttoDB,getDB}=require("../db/connection")
 
 const router=express.Router()
 
-connecttoDB((err)=>  {
-  if(!err) {
-    router.post('/createhabit',(req,res)=> {
 
-      db=getDB();
+    router.post('/createhabit',(req,res)=> {
         Habitschema.create(req.body)
         .then((data)=> res.json(data))
         .catch((e) => res.json(e))
 
       })
-    }
-})
 
 module.exports= router
 
