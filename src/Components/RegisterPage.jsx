@@ -11,7 +11,7 @@ const RegisterPage = () => {
     e.preventDefault();   // prevents the default reloading of a page on submission of the register form,e is event object representing submission
 
     try {
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch("http://localhost:5000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

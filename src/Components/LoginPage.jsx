@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import "../Styles/AuthForm.css";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -25,7 +27,7 @@ const LoginPage = () => {
       if (data.success) {
         localStorage.setItem("token", data.token);
         alert("Login successful!");
-        window.location.href = "/"; 
+         navigate("/"); 
       } else {
         alert(data.message || data || "Login failed!");
       }
