@@ -8,7 +8,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const handleRegister = async (e) => {
-    e.preventDefault();   // prevents the default reloading of a page on submission of the register form,e is event object representing submission
+    e.preventDefault();  
 
     try {
       const response = await fetch("http://localhost:5000/register", {
@@ -20,7 +20,7 @@ const RegisterPage = () => {
           password: password,
         }),
       });
-
+         
       const data = await response.json();
     
       if (response.ok) {
