@@ -10,7 +10,7 @@ const secretkey=process.env.JWT_SECRET
 
 module.exports=(passport) =>  {
 
-  passport.use(new JwtStrategy( {jwtfromRequest: jwtfromRequest, secretOrkey:secretkey}, (jwt_payload, done) => {
+  passport.use(new JwtStrategy( {jwtfromRequest: jwtfromRequest, secretOrKey:secretkey}, (jwt_payload, done) => {
  
     Usermodel.findById(jwt_payload.id)
       .then(user => {
