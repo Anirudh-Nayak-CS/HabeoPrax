@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
+import quotes from './quotes';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([
-    { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', days: 'Mon - Fri', done: false },
-    { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', days: 'Daily', done: false },
-    { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', days: 'Mon, Wed, Fri', done: false }
+    { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', done: false },
+    { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', done: false },
+    { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', done: false }
   ]);
 
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
@@ -80,35 +81,69 @@ export default function HabitTracker() {
   const month = today.toLocaleString('default', { month: 'long' });
   const year = today.getFullYear();
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-white px-6 py-8 font-sans">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <img src="../logo.png" alt="logo" className="w-10 h-10 rounded-full object-contain" />
-          <h1 className="text-3xl font-bold text-gray-800 tracking-wide">HabeoPrax</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-purple-500 text-white rounded-full px-4 py-1">
-            <span className="text-lg">👤</span>
-            <span className="ml-2 font-medium">Ajitesh</span>
-          </div>
-          <button className="text-2xl text-purple-500">🌙</button>
-        </div>
-      </header>
+  // Setting a quote
+  const [quote, setQuote] = useState({});
 
+  // Fetch a random quote on component mount
+  useEffect(() => {
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    setQuote(randomQuote);
+  }, []);
+
+    // Dark Mode State
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+      // Check local storage for saved mode
+      return localStorage.getItem('dark-mode') === 'true';
+  });
+
+  // Apply dark mode on first load
+  useEffect(() => {
+      const root = document.documentElement;
+      if (isDarkMode) {
+          root.classList.add('dark');
+      } else {
+          root.classList.remove('dark');
+      }
+  }, [isDarkMode]);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+      const newMode = !isDarkMode;
+      setIsDarkMode(newMode);
+      localStorage.setItem('dark-mode', newMode.toString());
+  };
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 px-4 sm:px-8">
+          {/* Header */}
+          <header className="flex justify-between items-center mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl p-4 shadow-md transition-colors duration-300">
+              <div className="flex items-center gap-3">
+                  <img src="/logo.png" alt="logo" className="w-12 h-12 rounded-full object-contain" />
+                  <h1 className="text-3xl font-bold tracking-wide">HabeoPrax</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                  <div className="flex items-center bg-purple-500 text-white rounded-full px-4 py-2">
+                      <span className="text-lg">👤</span>
+                      <span className="ml-2 font-medium">Ajitesh</span>
+                  </div>
+                  {/* Dark Mode Toggle */}
+                  <button onClick={toggleDarkMode} className="text-2xl transition-all">
+                      {isDarkMode ? '🌞' : '🌙'}
+                  </button>
+              </div>
+          </header>
       {/* Quote Section */}
-      <section className="bg-purple-500 text-white rounded-xl p-6 mb-6 shadow-md">
-        <h2 className="text-xl font-semibold mb-2">Good Morning, Ajitesh 🌞</h2>
-        <p className="text-base leading-relaxed italic">“Change might not be fast and it isn't always easy. But with time and effort, almost any habit can be reshaped.”</p>
-        <p className="text-right mt-2 text-sm">– Charles Duhigg</p>
-      </section>
+        <section className="bg-purple-500 text-white rounded-xl p-6 mb-6 shadow-md">
+          <h2 className="text-xl font-semibold mb-2">Good Morning, Ajitesh 🌞</h2>
+          <p className="text-base leading-relaxed italic">{quote.text}</p>
+          <p className="text-right mt-2 text-sm">– {quote.author}</p>
+        </section>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Habit List */}
         <section className="flex-1 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-semibold text-gray-800">Your Habits</h3>
+            <h3 className="text-2xl font-semibold text-purple-800">Your Habits</h3>
             <button onClick={openAddModal} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all shadow">+ Add a New Habit</button>
           </div>
 
@@ -117,7 +152,7 @@ export default function HabitTracker() {
               <div key={index} className={`rounded-xl p-4 shadow-md flex justify-between items-center ${habit.done ? 'bg-purple-200 text-purple-800' : 'bg-purple-300 text-white'}`}>
                 <div>
                   <h4 className={`text-lg font-semibold ${habit.done ? 'line-through' : ''}`}>{habit.title}</h4>
-                  <p>{habit.duration} | {habit.time} | {habit.days}</p>
+                  <p>{habit.duration} | {habit.time}</p>
                 </div>
                 <div className="flex gap-3 items-center">
                   <button onClick={() => openEditModal(index)}>✏️</button>
@@ -156,14 +191,6 @@ export default function HabitTracker() {
                 name="time"
                 className="w-full border border-gray-300 rounded px-3 py-2 mb-3"
                 value={formData.time}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                placeholder="Days (e.g., Mon - Fri)"
-                name="days"
-                className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
-                value={formData.days}
                 onChange={handleInputChange}
               />
               <div className="flex justify-end gap-3">
@@ -212,7 +239,7 @@ export default function HabitTracker() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-8">
-        <button title="Home" onClick={() => window.location.href = "/home"}>🏠</button>
+        <button title="Home" onClick={() => window.location.href = "/"}>🏠</button>
         <button title="Weekly Report" onClick={() => window.location.href = "/weekly-report"}>📈</button>
         <button title="Reminders">🔔</button>
         <button title="Settings">⚙️</button>
