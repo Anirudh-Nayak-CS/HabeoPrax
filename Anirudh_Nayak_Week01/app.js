@@ -1,24 +1,24 @@
-const express = require('express')
-const app = express()
-require('dotenv').config()
-
-const PORT = process.env.PORT
-const homerouter = require('./homepage/home')
-const { connecttoDB, getDB } = require("./db/connection")
-const cors = require('cors')
-const { Usermodel, Habitmodel } = require('./db/schema')
-const addinghabit = require('./homepage/addinghabit')
-const passport = require('passport')
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt')
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { connecttoDB, getDB } from './db/connection.js';  
+import { Usermodel, Habitmodel } from './db/schema.js';  
+import './config/jwtstrategy.js';
 
 
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use('/home', homerouter)
-app.use(passport.initialize())
-require("./config/jwtstrategy")
+dotenv.config();  
+
+const app = express();
+const PORT = process.env.PORT;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
+
 const saltRound = 10
 
  connecttoDB((err) => {
@@ -76,10 +76,26 @@ const saltRound = 10
                   message:"Error signing token ",
                   error:err.message||err,})
                     }
-                  res.json({
-                    success: true,
-                    token: 'Bearer ' + token,
+
+
+                    Habitmodel.updateOne({ userId: user._id },  { $set: { lastLogin: new Date() } }, { upsert: true }  )
+                    .then( ()=> {
+                      res.json({
+                        success: true,
+                        token: 'Bearer ' + token,
+                      })
+                    }
+                  )
+                  .catch(()=> {
+                    res.json({
+                      success: false,
+                      message: "Logged in but failed to add user to update habit data",
+                      token: 'Bearer ' + token,
+                      error:err.message,
+                    })
                   })
+
+                 
                 })
               })
           }
