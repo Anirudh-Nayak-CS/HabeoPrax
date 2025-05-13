@@ -1,0 +1,16 @@
+{
+    "version":"1.0",
+    "manifest_version": 3,
+    "name": "Habit Tracker",
+    "permissions": [
+        "storage",
+        "notifications",
+        "alarms"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    }
+}

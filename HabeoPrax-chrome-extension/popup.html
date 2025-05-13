@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+  <title>Habit Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      background-color: hsl(294, 26%, 90%);
+      border-radius: 10px;
+      width: 300px;
+    }
+
+    #add-habit-btn {
+      display: block;
+      margin: 10px auto;
+      padding: 5px 10px;
+      background-color: hsl(273, 64%, 65%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #habit-form-container {
+      display: none;
+      margin-bottom: 15px;
+    }
+
+    #add-habit-form input,
+    #add-habit-form textarea,
+    #add-habit-form select,
+    #add-habit-form button {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #habit-list {
+      margin-top: 10px;
+      font-size: 1.25em;
+      color:hsl(273, 64%, 65%);
+    }
+    h1{
+        text-align: center;
+        color:hsl(273, 64%, 65%);
+    }
+
+    .edit-btn,
+    .delete-btn {
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      margin: 2px 4px 6px 0;
+      background-color: #eee;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  
+  <h1>🗒️Today's Habits</h1>
+  <div id="habit-list"></div>
+  <button id="add-habit-btn">➕ Add Habit</button>
+  <div id="habit-form-container">
+    <form id="add-habit-form">
+      <input type="text" id="habit-name" placeholder="Habit Name" required />
+      <select id="habit-frequency">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+      </select>
+      <textarea id="habit-note" placeholder="Optional note..."></textarea>
+      <button type="submit">Add Habit</button>
+    </form>
+  </div>
+
+  <script src="popup.js" defer></script>
+</body>
+</html>
