@@ -20,12 +20,16 @@ const navigate = useNavigate();
           password: password,
         }),
       });
-
       const data = await response.json();
-      console.log(data);
+      if(!response.ok) {
+        throw new Error(data.message || "error loggin in")
+      }
+
+     
 
       if (data.success) {
-        localStorage.setItem("token", data.token);
+        console.log('Received data.token:', data.token);
+        localStorage.setItem('token', data.token);
         alert("Login successful!");
          navigate("/home"); 
       } else {
