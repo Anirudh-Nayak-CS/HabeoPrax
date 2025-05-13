@@ -1,13 +1,53 @@
-import express from 'express';
-import homerouter from './home.js';
-
-
-const router = express.Router();
-
-router.post('/createhabit', (req, res) => {
-  Habitschema.create(req.body)
-    .then((data) => res.json(data))
-    .catch((e) => res.json(e));
+import { Habitmodel } from '../db/schema.js'
+import express from 'express'
+import jwt from 'jsonwebtoken'
+import path from 'path'
+import dotenv from 'dotenv';
+const router=express.Router();
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({
+  path: path.resolve(__dirname, '../.env')
 });
 
-export default router;
+router.put('/habitdata',async (req,res)=> {
+  const auth = req.headers.authorization;
+ console.log("Authorization Header:", auth); 
+     if (!auth?.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+    const token = auth.split(' ').pop().trim();
+console.log("Token:", token); 
+  try {
+ 
+   const  payload = jwt.verify(token, process.env.JWT_SECRET);
+ const userId = payload.id;
+  const habits=req.body.habits;
+  try {
+    console.log(habits);
+    
+await Habitmodel.updateOne(
+    { userId: { $exists: false } }, 
+    { 
+      $set: { 
+        userId: userId,  
+        habits: habits    
+      }
+    },
+    { upsert: true } 
+  );
+return res.status(200).json({success:true,message:"Added habits successfully"})
+}
+catch(e) {
+  console.log(e);
+  return res.status(500).json({success:false,message:"Adding habits failed"})
+}
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
+ 
+
+}
+)
+export default router

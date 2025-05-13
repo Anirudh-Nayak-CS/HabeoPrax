@@ -10,12 +10,13 @@ import './config/jwtstrategy.js';
 
 
 dotenv.config();  
-
+import homeRoute from './homepage/addinghabit.js'
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
+app.use(homeRoute);
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
@@ -61,51 +62,44 @@ const saltRound = 10
               .then(isMatch => {
                 if (!isMatch){
                 console.log("No user found try again")
-                  return res.json("No user found try again")
+                  return res.status(401).json("No user found try again")
                 }
                 const payload = {
                   id: user.id,
                   username: user.username,
                   email: user.email,
                 }
-
-                jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1hr" }, (err, token) => {
+               
+                
+                jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
                   if (err) {
                     console.log("Error signing token")
-                    return res.json( {
+                    return res.status(500).json( {
                   message:"Error signing token ",
                   error:err.message||err,})
                     }
 
-
-                    Habitmodel.updateOne({ userId: user._id },  { $set: { lastLogin: new Date() } }, { upsert: true }  )
-                    .then( ()=> {
-                      res.json({
-                        success: true,
-                        token: 'Bearer ' + token,
-                      })
-                    }
-                  )
-                  .catch(()=> {
-                    res.json({
-                      success: false,
-                      message: "Logged in but failed to add user to update habit data",
-                      token: 'Bearer ' + token,
-                      error:err.message,
-                    })
+                     
+                    //Habitmodel.findOneAndUpdate({ userId: user._id },  { $set: { lastLogin: new Date() } }, { upsert: true }  )
+                  
+                   return res.json({
+                    success: true,
+                    token: 'Bearer ' + token,
                   })
+                })
 
                  
                 })
-              })
-          }
-          else
-           return res.json("You don't have an account,kindly register")
-        })
-        .catch(e =>  {
+              }
+              
+                else
+            res.json("You don't have an account,kindly register")
+          })
+    .catch(e =>  {
           console.log("Error logging in")
-         return res.json(e)})
-    })
+         return res.status(500).json(e)})
+        })
+    
         console.log("db connection :D")
       
           

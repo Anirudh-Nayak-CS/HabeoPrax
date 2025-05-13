@@ -23,35 +23,40 @@ const HabitSchema = new mongoose.Schema({
     ref: 'User', 
     required: true, 
   },
-
-  habitname: {
+ habits:  [ {
+  title: {
     type: String,
     required: true,
+  },
+  icon: {
+   type:String,
+   required:true,
   },
   duration: {
-    type: Number,
-    required: true,
-  },
-  timesperday: {
-    type: Number,
-    required: true,
-  },
-  primarytime: {
     type: String,
     required: true,
   },
-  days: {
+  time: {
+    type: String,
+    required: true,
+  },
+  day: {
     type: [String],
     required: true,
   },
-  completion: {
+  done: {
     type: Boolean,
     required: true,
   },
   setReminder: Boolean,
   streakcount: Number,
-  points:Number,
-});
+  points: {
+    type:Number,
+    min:0,
+  }
+ }
+ 
+]});
 
 const Usermodel = mongoose.model("User", UserSchema);
 const Habitmodel = mongoose.model("Habit", HabitSchema);
