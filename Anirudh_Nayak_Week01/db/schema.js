@@ -14,7 +14,15 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  }
+  },
+  points: {
+    type: Number,
+    default: 0,
+  },
+  lastLogin: {
+    type: Date,
+    default: null,
+  },
 });
 
 const HabitSchema = new mongoose.Schema({
