@@ -20,6 +20,20 @@ export default function HabitTracker() {
   });
   const [editIndex, setEditIndex] = useState(null);
 
+  const [points, setPoints] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [badges, setBadges] = useState([]);
+
+  const dayToIndex = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -67,8 +81,31 @@ export default function HabitTracker() {
 
   const toggleHabitDone = (index) => {
     const updatedHabits = [...habits];
-    updatedHabits[index].done = !updatedHabits[index].done;
+    const habit = updatedHabits[index];
+    habit.done = !habit.done;
     setHabits(updatedHabits);
+
+    if (habit.done) {
+      const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+      const targetDay = dayToIndex[habit.day];
+      let daysEarly = targetDay - today;
+      if (daysEarly < 0) daysEarly += 7;
+
+      const earnedPoints = daysEarly * 10;
+      setPoints(prev => prev + earnedPoints);
+
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+
+      if (newStreak === 3 && !badges.includes("🥉 3-Day Streak")) {
+        setBadges(prev => [...prev, "🥉 3-Day Streak"]);
+      }
+      if (newStreak === 7 && !badges.includes("🥈 7-Day Streak")) {
+        setBadges(prev => [...prev, "🥈 7-Day Streak"]);
+      }
+    } else {
+      setStreak(0); // Reset streak if unchecking
+    }
   };
 
   const today = new Date();
@@ -125,6 +162,22 @@ export default function HabitTracker() {
         <p className="text-right mt-2 text-sm">– {quote.author}</p>
       </section>
 
+      {/* 💎 Rewards Section */}
+      <section className="bg-yellow-100 text-yellow-800 rounded-xl p-4 mb-6 shadow-md">
+        <h3 className="text-lg font-semibold mb-2">🎁 Rewards</h3>
+        <p>Total Points: <span className="font-bold">{points}</span></p>
+        <p>Current Streak: <span className="font-bold">{streak} days</span></p>
+        <div className="mt-2">
+          <h4 className="font-medium">🏅 Badges:</h4>
+          <div className="flex gap-3 mt-1 flex-wrap">
+            {badges.length === 0 && <span>No badges yet</span>}
+            {badges.map((badge, i) => (
+              <span key={i} className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full">{badge}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="flex flex-col lg:flex-row gap-6">
         <section className="flex-1 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -149,7 +202,6 @@ export default function HabitTracker() {
           </div>
         </section>
 
-        {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 w-96 shadow-xl">

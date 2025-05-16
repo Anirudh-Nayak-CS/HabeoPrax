@@ -24,4 +24,7 @@ dist-ssr
 *.sw?
 # In your .gitignore
 Backend/
+# .gitignore
+.env
+
 
