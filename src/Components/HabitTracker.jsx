@@ -32,6 +32,8 @@ export default function HabitTracker() {
     }  
     addHabits(); 
   },[habits])
+ 
+  
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [selectedMood, setSelectedMood] = useState('😊');
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +45,20 @@ export default function HabitTracker() {
     day: ''
   });
   const [editIndex, setEditIndex] = useState(null);
+
+  const [points, setPoints] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [badges, setBadges] = useState([]);
+
+  const dayToIndex = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -91,8 +107,50 @@ export default function HabitTracker() {
 
   const toggleHabitDone = (index) => {
     const updatedHabits = [...habits];
-    updatedHabits[index].done = !updatedHabits[index].done;
-    setHabits(updatedHabits);
+    const habit = updatedHabits[index];
+    habit.done = !habit.done;
+    if(typeof(habit.pointsEarned)!=="number" || isNaN(habit.pointsEarned))
+      habit.pointsEarned=0;
+   
+
+    if (habit.done) {
+      const today = new Date().getDay(); 
+      const targetDay = dayToIndex[habit.day];
+      let daysEarly = targetDay - today;
+      if (daysEarly < 0) daysEarly += 7;
+
+      const earnedPoints = daysEarly * 10;
+      habit.pointsEarned=earnedPoints
+      setPoints(prev => prev + earnedPoints);
+
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+
+      if (newStreak === 3 && !badges.includes("🥉 3-Day Streak")) {
+        setBadges(prev => [...prev, "🥉 3-Day Streak"]);
+      }
+      if (newStreak === 7 && !badges.includes("🥈 7-Day Streak")) {
+        setBadges(prev => [...prev, "🥈 7-Day Streak"]);
+      }
+    } else {
+  
+  const pointsToSubtract = habit.pointsEarned;
+  console.log("Unchecking habit. Subtracting:", pointsToSubtract);
+  console.log("Points before subtract:", points);
+
+ 
+  setPoints(prev => {
+    const newPoints = prev - pointsToSubtract;
+    console.log("→ inside setter, newPoints:", newPoints);
+    return newPoints >= 0 ? newPoints : 0;
+  });
+
+ 
+  habit.pointsEarned = 0;
+  setStreak(0);
+   
+    }
+     setHabits(updatedHabits);
   };
 
   const today = new Date();
@@ -149,6 +207,22 @@ export default function HabitTracker() {
         <p className="text-right mt-2 text-sm">– {quote.author}</p>
       </section>
 
+      {/* 💎 Rewards Section */}
+      <section className="bg-yellow-100 text-yellow-800 rounded-xl p-4 mb-6 shadow-md">
+        <h3 className="text-lg font-semibold mb-2">🎁 Rewards</h3>
+        <p>Total Points: <span className="font-bold">{points}</span></p>
+        <p>Current Streak: <span className="font-bold">{streak} days</span></p>
+        <div className="mt-2">
+          <h4 className="font-medium">🏅 Badges:</h4>
+          <div className="flex gap-3 mt-1 flex-wrap">
+            {badges.length === 0 && <span>No badges yet</span>}
+            {badges.map((badge, i) => (
+              <span key={i} className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full">{badge}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="flex flex-col lg:flex-row gap-6">
         <section className="flex-1 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -158,12 +232,7 @@ export default function HabitTracker() {
 
           <div className="space-y-4">
             {habits.map((habit, index) => (
-              <div
-                key={index}
-                className={`rounded-xl p-4 shadow-md flex justify-between items-center ${
-                  habit.done ? 'bg-purple-200 text-purple-800' : 'bg-purple-300 text-white'
-                }`}
-              >
+              <div key={index} className={`rounded-xl p-4 shadow-md flex justify-between items-center ${habit.done ? 'bg-purple-200 text-purple-800' : 'bg-purple-300 text-white'}`}>
                 <div>
                   <h4 className={`text-lg font-semibold ${habit.done ? 'line-through' : ''}`}>{habit.title}</h4>
                   <p>{habit.duration} | {habit.time} | {habit.day}</p>
@@ -236,9 +305,7 @@ export default function HabitTracker() {
                 <div
                   key={i + 1}
                   onClick={() => setSelectedDate(i + 1)}
-                  className={`cursor-pointer py-1 rounded-full transition-all ${
-                    selectedDate === i + 1 ? 'bg-purple-500 text-white font-bold' : 'text-gray-700 hover:bg-purple-200'
-                  }`}
+                  className={`cursor-pointer py-1 rounded-full transition-all ${selectedDate === i + 1 ? 'bg-purple-500 text-white font-bold' : 'text-gray-700 hover:bg-purple-200'}`}
                 >
                   {i + 1}
                 </div>
@@ -264,7 +331,7 @@ export default function HabitTracker() {
       </div>
 
       <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-8">
-        <button title="Home" onClick={() => window.location.href = "/home"}>🏠</button>
+        <button title="Home" onClick={() => window.location.href = "/"}>🏠</button>
         <button title="Weekly Report" onClick={() => window.location.href = "/weekly-report"}>📈</button>
         <button title="Reminders">🔔</button>
         <button title="Settings">⚙️</button>
