@@ -1,98 +1,77 @@
-const express = require('express')
-const app = express()
-require('dotenv').config()
-const PORT = process.env.PORT || 5000
-const homerouter = require('./homepage/home')
-const { connecttoDB, getDB } = require("./db/connection")
-const cors = require('cors')
-const mongoose = require('mongoose')
-const { Usermodel, Habitmodel } = require('./db/schema')
-const addinghabit = require('./homepage/addinghabit')
-const passport = require('passport')
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt')
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { connecttoDB } from './db/connection.js';
+import { Usermodel } from './db/schema.js';
+import './config/jwtstrategy.js';
 
-let db
-app.use('/home', homerouter)
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cors())
-app.use(passport.initialize())
-require("./config/jwtstrategy")
-const saltRound = 10
+import habitRoutes from './homepage/habitRoutes.js';  // ✅ Unified route
+
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
+app.use('/', habitRoutes);  // ✅ Only one route for habits
+
+const saltRound = 10;
 
 connecttoDB((err) => {
   if (!err) {
-    db = getDB()
+    console.log("DB connected");
+
     app.post('/register', (req, res) => {
       bcrypt.hash(req.body.password, saltRound)
-        .then((hashedpassword) => {
-          req.body.password = hashedpassword
-          console.log("Hashed password: ",hashedpassword)
+        .then((hashedPassword) => {
+          req.body.password = hashedPassword;
           Usermodel.create(req.body)
-            .then((data) => {
-              console.log("User data: ",data)
-              res.json(data)
+            .then((user) => res.status(201).json(user))
+            .catch((e) =>
+              res.status(500).json({ success: false, message: "Error creating user", error: e.message })
+            );
         })
-            .catch((e) => {
-              console.log("Error creating user")
-              res.json(e)
-        })
-        })
-        .catch((e) => {
-          console.log("Error hashing pw")
-          console.log(e)
-    })
-    })
-    
+        .catch((e) =>
+          res.status(500).json({ success: false, message: "Password hashing failed", error: e.message })
+        );
+    });
 
     app.post('/login', (req, res) => {
-      const {username, email, password } = req.body;
-      console.log(email)
-      console.log(username)
-      console.log(password)
+      const { email, password } = req.body;
 
-      Usermodel.findOne({ email: email })
+      Usermodel.findOne({ email })
         .then((user) => {
-          if (user) {
-            bcrypt.compare(password, user.password)
-              .then(isMatch => {
-                if (!isMatch){
-                console.log("No user found try again")
-                  return res.json("No user found try again")
-                }
-                const payload = {
-                  id: user.id,
-                  username: user.username,
-                  email: user.email,
-                }
+          if (!user) return res.status(401).json("No user found, please register");
 
-                jwt.sign(payload, process.env.JWT_secret, { expiresIn: "1hr" }, (err, token) => {
-                  if (err) {
-                    console.log("Error signing token")
-                    return res.json( {
-                  message:"Error signing token ",
-                  error:err.message||err,})
-                    }
-                  res.json({
-                    success: true,
-                    token: 'Bearer ' + token,
-                  })
-                })
-              })
-          }
-          else
-            res.json("You don't have an account,kindly register")
+          bcrypt.compare(password, user.password)
+            .then((isMatch) => {
+              if (!isMatch) return res.status(401).json("Incorrect password");
+
+              const payload = { id: user.id, username: user.username, email: user.email };
+
+              jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
+                if (err) return res.status(500).json({ message: "Token signing failed", error: err });
+
+                return res.json({ success: true, token: 'Bearer ' + token });
+              });
+            });
         })
-        .catch(e =>  {
-          console.log("Error logging in")
-          res.json(e)})
-    })
+        .catch((e) => res.status(500).json({ message: "Login error", error: e.message }));
+    });
 
     app.listen(PORT, () => {
-      console.log(`listening to ${PORT}`)
-    })
+      console.log(`Server running on port ${PORT}`);
+    });
+
   } else {
-    console.error("DB Connection failed")
+    console.error("DB Connection failed");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   }
-})
+});
