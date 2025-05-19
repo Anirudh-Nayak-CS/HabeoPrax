@@ -1,157 +1,241 @@
+const apiUrl = "http://localhost:5000";
+
+const loginSection = document.getElementById("login-section");
+const habitSection = document.getElementById("habit-section");
+const loginBtn = document.getElementById("loginBtn");
+const loginMessage = document.getElementById("loginMessage");
+const motivationDiv = document.getElementById("motivation");
+const offlineBanner = document.getElementById("offlineBanner");
+
+const toggleAddFormBtn = document.getElementById("toggleAddFormBtn");
+const addHabitForm = document.getElementById("addHabitForm");
+
+const habitList = document.getElementById("habitList");
+
+let habitsCache = []; // cache habits locally for offline
+let tokenGlobal = null;
+
+// Quotes for Phase 4
 const quotes = [
-  "Keep going! You're doing great!",
-  "One day at a time.",
-  "Small steps lead to big changes!"
+  "The journey of a thousand miles begins with one step.",
+  "Don't watch the clock; do what it does. Keep going.",
+  "Success is the sum of small efforts repeated day in and day out.",
+  "Motivation gets you started. Habit keeps you going.",
+  "Every day is a chance to get better."
 ];
-const rewardEmojis = ["🎉", "🔥", "✅", "🌟", "💪"];
-const emojiWidgetEmojis = ["😄", "🚀", "✨", "💡", "🎯", "🏁", "🏆", "😊"];
 
-document.addEventListener("DOMContentLoaded", () => {
-  const today = new Date().toISOString().split("T")[0];
-  const container = document.getElementById("habit-list");
+// Reward emojis/GIFs for Phase 4
+const rewards = ["🎉", "💪", "🏆", "✨", "🔥", "🥳"];
 
-  function loadHabits(callback) {
-    if (navigator.onLine) {
-      chrome.storage.sync.get(["habits"], (result) => {
-        const habits = result.habits || [];
-        callback(habits);
-        localStorage.setItem("habits_backup", JSON.stringify(habits));
-      });
-    } else {
-      const habits = JSON.parse(localStorage.getItem("habits_backup") || "[]");
-      callback(habits);
-    }
+// Show motivation quote
+function showMotivation() {
+  const quote = quotes[Math.floor(Math.random() * quotes.length)];
+  motivationDiv.textContent = `"${quote}"`;
+}
+
+// Show offline banner if offline
+function updateOnlineStatus() {
+  if (!navigator.onLine) {
+    offlineBanner.style.display = "block";
+  } else {
+    offlineBanner.style.display = "none";
+    // Try syncing offline changes
+    syncOfflineHabits();
   }
+}
 
-  function saveHabits(habits, reload = true) {
-    if (navigator.onLine) {
-      chrome.storage.sync.set({ habits }, () => {
-        localStorage.setItem("habits_backup", JSON.stringify(habits));
-        if (reload) window.location.reload();
-      });
-    } else {
-      localStorage.setItem("habits_backup", JSON.stringify(habits));
-      if (reload) window.location.reload();
-    }
-  }
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
 
-  function showEmojiWidget() {
-    const emojiWidget = document.createElement("div");
-    emojiWidget.textContent = `Great Job ${emojiWidgetEmojis[Math.floor(Math.random() * emojiWidgetEmojis.length)]}`;
-    emojiWidget.style.textAlign = "center";
-    emojiWidget.style.fontSize = "1.5em";
-    emojiWidget.style.marginTop = "10px";
-    emojiWidget.id = "emoji-widget";
-    document.body.appendChild(emojiWidget);
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    // Remove widget after 2 seconds
-    setTimeout(() => {
-      emojiWidget.remove();
-    }, 2000);
-  }
+  const res = await fetch(`${apiUrl}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
 
-  loadHabits((habits) => {
-    habits = habits.map(habit => {
-      if (habit.lastCompleted !== today) {
-        habit.doneToday = false;
-      }
-      return habit;
+  const data = await res.json();
+  if (data.success) {
+    const token = data.token;
+    tokenGlobal = token;
+    chrome.storage.local.set({ token }, () => {
+      loginMessage.textContent = "Login successful!";
+      loginSection.style.display = "none";
+      habitSection.style.display = "block";
+      showMotivation();
+      loadHabits(token);
+      updateOnlineStatus();
     });
+  } else {
+    loginMessage.textContent = "Login failed. Try again.";
+  }
+});
 
-    const quote = quotes[Math.floor(Math.random() * quotes.length)];
-    container.insertAdjacentHTML("beforebegin", `
-      <div style="margin-bottom: 10px;">
-        <h3 style="margin: 0; color: #6a1b9a;">Motivation of the Day</h3>
-        <p style="font-style: italic; color: #444;">"${quote}"</p>
-      </div>
-    `);
-
-    habits.forEach((habit, i) => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <label style="font-size:1.2em; font-weight:bold; color:hsl(273, 54%, 72%)">
-          <input type="checkbox" ${habit.doneToday ? "checked" : ""} data-index="${i}">
-          ${habit.name}
-        </label>
-        <div style="font-size: 0.8em; color: gray;">🔥 Streak: ${habit.streak || 0} ${habit.doneToday ? rewardEmojis[Math.floor(Math.random() * rewardEmojis.length)] : ""}</div>
-        ${habit.note ? `<div style="font-size: 0.75em; color: #444;">📝 Note: ${habit.note}</div>` : ""}
-        <button class="edit-btn" data-index="${i}" style="background-color:hsl(273, 64%, 65%);color:white; font-size:0.8em">✏️ Edit</button>
-        <button class="delete-btn" data-index="${i}" style="background-color:hsl(273, 64%, 65%);color:white; font-size:0.8em">🗑️ Delete</button>
-        <hr>
-      `;
-      container.appendChild(div);
-    });
-
-    container.addEventListener("change", (e) => {
-      const index = e.target.getAttribute("data-index");
-      const checked = e.target.checked;
-      if (index !== null) {
-        if (checked && habits[index].lastCompleted !== today) {
-          habits[index].streak = (habits[index].streak || 0) + 1;
-          habits[index].lastCompleted = today;
-          habits[index].doneToday = true;
-          saveHabits(habits, false);
-          showEmojiWidget(); // Show widget on check
-        } else if (!checked) {
-          habits[index].streak = Math.max(0, (habits[index].streak || 0) - 1);
-          habits[index].lastCompleted = "";
-          habits[index].doneToday = false;
-          saveHabits(habits, false);
+function loadHabits(token) {
+  fetch(`${apiUrl}/habitdata`, {
+    headers: { Authorization: token }
+  })
+    .then(res => res.json())
+    .then(data => {
+      habitsCache = data.habits; // Cache habits locally
+      displayHabits(habitsCache);
+    })
+    .catch(() => {
+      // If offline or server error, load from local storage if available
+      chrome.storage.local.get("offlineHabits", (result) => {
+        if (result.offlineHabits) {
+          habitsCache = result.offlineHabits;
+          displayHabits(habitsCache);
         }
-      }
-    });
-
-    container.addEventListener("click", (e) => {
-      const index = e.target.getAttribute("data-index");
-      if (index === null) return;
-
-      if (e.target.classList.contains("delete-btn")) {
-        habits.splice(index, 1);
-        saveHabits(habits);
-      }
-
-      if (e.target.classList.contains("edit-btn")) {
-        const habit = habits[index];
-        const name = prompt("Edit habit name:", habit.name);
-        if (name === null) return;
-        const frequency = prompt("Edit frequency (daily/weekly):", habit.frequency || "daily");
-        if (frequency === null) return;
-        const note = prompt("Edit note (optional):", habit.note || "");
-        if (note === null) return;
-
-        habits[index] = {
-          ...habit,
-          name: name.trim(),
-          frequency: frequency.trim(),
-          note: note.trim()
-        };
-        saveHabits(habits);
-      }
-    });
-  });
-
-  document.getElementById("add-habit-btn").addEventListener("click", () => {
-    const form = document.getElementById("habit-form-container");
-    form.style.display = form.style.display === "none" ? "block" : "none";
-  });
-
-  document.getElementById("add-habit-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("habit-name").value.trim();
-    const frequency = document.getElementById("habit-frequency").value;
-    const note = document.getElementById("habit-note").value.trim();
-    if (!name) return;
-
-    loadHabits((habits) => {
-      habits.push({
-        name,
-        frequency,
-        note,
-        doneToday: false,
-        streak: 0,
-        lastCompleted: ""
       });
-      saveHabits(habits);
     });
+}
+
+function displayHabits(habits) {
+  habitList.innerHTML = "";
+  habits.forEach((habit, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${habit.icon} ${habit.title} - ${habit.done ? "✅ Done" : "❌ Not Done"}
+      <button data-index="${index}">${habit.done ? "Undo" : "Mark Done"}</button>
+      <span class="reward-emoji" id="reward-${index}"></span>
+    `;
+    habitList.appendChild(li);
+
+    li.querySelector("button").addEventListener("click", () => toggleDone(index));
   });
+}
+
+function toggleDone(index) {
+  habitsCache[index].done = !habitsCache[index].done;
+
+  if (navigator.onLine) {
+    // Online: update backend immediately
+    fetch(`${apiUrl}/habitdata`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: tokenGlobal
+      },
+      body: JSON.stringify({ habits: habitsCache })
+    })
+    .then(() => {
+      displayHabits(habitsCache);
+      showReward(index);
+    })
+    .catch(() => {
+      // On failure, save offline
+      saveHabitsOffline();
+      displayHabits(habitsCache);
+      showReward(index);
+    });
+  } else {
+    // Offline: save change locally
+    saveHabitsOffline();
+    displayHabits(habitsCache);
+    showReward(index);
+  }
+}
+
+// Show reward emoji briefly when habit marked done
+function showReward(index) {
+  if (!habitsCache[index].done) return; // only show when marked done
+
+  const rewardSpan = document.getElementById(`reward-${index}`);
+  const emoji = rewards[Math.floor(Math.random() * rewards.length)];
+  rewardSpan.textContent = emoji;
+  rewardSpan.style.opacity = "1";
+
+  setTimeout(() => {
+    rewardSpan.style.opacity = "0";
+    rewardSpan.textContent = "";
+  }, 1500);
+}
+
+// Save habits to local storage (offline)
+function saveHabitsOffline() {
+  chrome.storage.local.set({ offlineHabits: habitsCache, pendingSync: true });
+}
+
+// Sync offline habits to backend when online
+function syncOfflineHabits() {
+  chrome.storage.local.get(["offlineHabits", "pendingSync", "token"], ({ offlineHabits, pendingSync, token }) => {
+    if (pendingSync && offlineHabits && token) {
+      fetch(`${apiUrl}/habitdata`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify({ habits: offlineHabits })
+      })
+      .then(() => {
+        chrome.storage.local.set({ pendingSync: false });
+        // reload habits from backend to make sure fresh
+        loadHabits(token);
+      })
+      .catch(() => {
+        // Fail silently, will retry on next online event
+      });
+    }
+  });
+}
+
+toggleAddFormBtn.addEventListener("click", () => {
+  addHabitForm.style.display = addHabitForm.style.display === "none" ? "block" : "none";
+});
+
+addHabitForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const newHabit = {
+    title: document.getElementById("title").value,
+    icon: document.getElementById("icon").value,
+    duration: document.getElementById("duration").value,
+    time: document.getElementById("time").value,
+    day: document.getElementById("day").value.split(",").map(day => day.trim()),
+    done: false,
+    setReminder: document.getElementById("setReminder").checked,
+    streakcount: 0,
+    points: 0
+  };
+
+  chrome.storage.local.get("token", ({ token }) => {
+    fetch(`${apiUrl}/habitdata`, {
+      method: "GET",
+      headers: { Authorization: token }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const updatedHabits = [...data.habits, newHabit];
+        return fetch(`${apiUrl}/habitdata`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+          },
+          body: JSON.stringify({ habits: updatedHabits })
+        });
+      })
+      .then(() => {
+        loadHabits(token);
+        addHabitForm.reset();
+        addHabitForm.style.display = "none";
+      });
+  });
+});
+
+// Check if logged in on popup open
+chrome.storage.local.get("token", ({ token }) => {
+  if (token) {
+    tokenGlobal = token;
+    loginSection.style.display = "none";
+    habitSection.style.display = "block";
+    showMotivation();
+    loadHabits(token);
+    updateOnlineStatus();
+  }
 });

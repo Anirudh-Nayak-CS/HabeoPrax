@@ -1,0 +1,73 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  width: 320px;
+  background-color: hsl(300, 75%, 90%);;
+}
+
+#heading {
+  text-align: center;
+  color: hsl(300, 75%, 40%);
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+input, button {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+#toggleAddFormBtn {
+  background-color: #2196F3;
+  margin-top: 10px;
+}
+
+#toggleAddFormBtn:hover {
+  background-color: #0b7dda;
+}
+
+form {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+ul#habitList {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul#habitList li {
+  background: #eee;
+  padding: 6px;
+  margin: 5px 0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+#loginMessage {
+  color: red;
+  font-size: 13px;
+}

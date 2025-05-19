@@ -20,7 +20,7 @@ function App() {
       <Route path="/" element={<LandingSite />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/test" element={<HabitTracker />}/>
+      <Route path="/home" element={<HabitTracker />}/>
   </Routes>
 </Router>
 </>

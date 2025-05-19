@@ -1,84 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-  <title>Habit Tracker</title>
+  <title>HabeoPrax</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 15px;
-      background-color: hsl(294, 26%, 90%);
-      border-radius: 10px;
-      width: 300px;
+    #motivation { font-style: italic; margin-bottom: 10px; }
+    .reward-emoji {
+      font-size: 1.2em;
+      margin-left: 10px;
+      animation: pop 0.7s ease forwards;
+      display: inline-block;
+      opacity: 0;
     }
-
-    #add-habit-btn {
-      display: block;
-      margin: 10px auto;
-      padding: 5px 10px;
-      background-color: hsl(273, 64%, 65%);
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.5); opacity: 1; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    #offlineBanner {
+      background: #f44336;
       color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #habit-form-container {
+      text-align: center;
+      padding: 5px;
       display: none;
-      margin-bottom: 15px;
-    }
-
-    #add-habit-form input,
-    #add-habit-form textarea,
-    #add-habit-form select,
-    #add-habit-form button {
-      display: block;
-      width: 100%;
-      margin: 6px 0;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    #habit-list {
-      margin-top: 10px;
-      font-size: 1.25em;
-      color:hsl(273, 64%, 65%);
-    }
-    h1{
-        text-align: center;
-        color:hsl(273, 64%, 65%);
-    }
-
-    .edit-btn,
-    .delete-btn {
-      font-size: 0.8rem;
-      padding: 2px 6px;
-      margin: 2px 4px 6px 0;
-      background-color: #eee;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <h1 id="heading">HabeoPrax</h1>
   
-  <h1>🗒️Today's Habits</h1>
-  <div id="habit-list"></div>
-  <button id="add-habit-btn">➕ Add Habit</button>
-  <div id="habit-form-container">
-    <form id="add-habit-form">
-      <input type="text" id="habit-name" placeholder="Habit Name" required />
-      <select id="habit-frequency">
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-      </select>
-      <textarea id="habit-note" placeholder="Optional note..."></textarea>
+  <div id="offlineBanner">You are offline. Changes will sync when online.</div>
+  
+  <div id="login-section">
+    <h2>Login</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+    <p id="loginMessage"></p>
+  </div>
+
+  <div id="habit-section" style="display: none;">
+    <div id="motivation"></div>
+    <h2>Your Habits</h2>
+    <ul id="habitList"></ul>
+
+    <button id="toggleAddFormBtn">+ Add New Habit</button>
+    <form id="addHabitForm" style="display: none;">
+      <input type="text" id="title" placeholder="Title" required />
+      <input type="text" id="icon" placeholder="Icon (e.g. 💪)" required />
+      <input type="text" id="duration" placeholder="Duration (e.g. 30 days)" required />
+      <input type="time" id="time" required />
+      <input type="text" id="day" placeholder="Days (comma-separated)" required />
+      <label>
+        <input type="checkbox" id="setReminder" /> Set Reminder
+      </label>
       <button type="submit">Add Habit</button>
     </form>
   </div>
 
-  <script src="popup.js" defer></script>
+  <script src="popup.js"></script>
 </body>
 </html>

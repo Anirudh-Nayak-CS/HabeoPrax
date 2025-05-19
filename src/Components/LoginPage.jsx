@@ -27,7 +27,7 @@ const navigate = useNavigate();
     if (data.success) {
     localStorage.setItem("token", data.token);
     alert("Login successful!");
-    navigate("/");
+    navigate("/home");
     } else {
     const message =
      typeof data.message === "string"
