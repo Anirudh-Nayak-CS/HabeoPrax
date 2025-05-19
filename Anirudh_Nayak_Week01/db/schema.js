@@ -23,6 +23,7 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+   streak: Number,
 });
 
 const HabitSchema = new mongoose.Schema({
@@ -57,7 +58,7 @@ const HabitSchema = new mongoose.Schema({
     required: true,
   },
   setReminder: Boolean,
-  streakcount: Number,
+ 
   points: {
     type:Number,
     min:0,

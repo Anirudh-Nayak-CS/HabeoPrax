@@ -11,12 +11,14 @@ import './config/jwtstrategy.js';
 
 dotenv.config();  
 import homeRoute from './homepage/addinghabit.js'
+import pointRoute from './homepage/addingptstreak.js'
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
 app.use(homeRoute);
+app.use(pointRoute);
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
