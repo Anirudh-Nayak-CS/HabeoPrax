@@ -32,7 +32,7 @@ export default function HabitTracker() {
     }  
     addHabits(); 
   },[habits])
- 
+  
   
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [selectedMood, setSelectedMood] = useState('😊');
@@ -49,7 +49,31 @@ export default function HabitTracker() {
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
   const [badges, setBadges] = useState([]);
+ useEffect(()=> {
+   const addpointsandstreak= async()=> {
+     const token=localStorage.getItem('token')
+     if(!token) return;
+    try {
+     let res= await fetch('http://localhost:5000/addingptstreak',{
+         method:"PUT",
+         headers: {
+          "Content-Type":"application/json",
+           Authorization: `Bearer ${token}`,
+         },
+         body:JSON.stringify({points,streak})
+         })
+         if(!res.ok) {
+          const errtext=await res.text();
+          console.log("failed to fetch (pt and streak)",errtext)
+         }
+    }
+    catch (e) {
+      console.log(e);
+    }
 
+   }
+   addpointsandstreak();
+   },[points,streak])
   const dayToIndex = {
     Sunday: 0,
     Monday: 1,
@@ -134,14 +158,9 @@ export default function HabitTracker() {
       }
     } else {
   
-  const pointsToSubtract = habit.pointsEarned;
-  console.log("Unchecking habit. Subtracting:", pointsToSubtract);
-  console.log("Points before subtract:", points);
-
- 
+  const pointsToSubtract = habit.pointsEarned; 
   setPoints(prev => {
     const newPoints = prev - pointsToSubtract;
-    console.log("→ inside setter, newPoints:", newPoints);
     return newPoints >= 0 ? newPoints : 0;
   });
 
