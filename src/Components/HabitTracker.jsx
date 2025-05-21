@@ -2,12 +2,70 @@ import React, { useState, useEffect } from 'react';
 import quotes from './quotes';
 
 export default function HabitTracker() {
-  const [habits, setHabits] = useState([
-    { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', day: 'Monday', done: false },
-    { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', day: 'Tuesday', done: false },
-    { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', day: 'Wednesday', done: false }
-  ]);
+  // const [habits, setHabits] = useState([
+  //   { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', day: 'Monday', done: false },
+  //   { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', day: 'Tuesday', done: false },
+  //   { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', day: 'Wednesday', done: false }
+  // ]);
+  const [habits, setHabits] = useState([]);
+  const [hasFetched, setHasFetched] = useState(false);
 
+
+useEffect(() => {
+  const fetchHabits = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/habitdata', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setHabits(data.habits);
+        setHasFetched(true); // ✅ mark loaded
+      } else {
+        console.error('Failed to load habits:', data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching habits:', err);
+    }
+  };
+
+  fetchHabits();
+}, []);
+
+
+const syncHabits = async (updatedHabits) => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/habitdata", {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ habits: updatedHabits }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log("Failed to sync habits:", errorText);
+    }
+  } catch (e) {
+    console.log("Sync error:", e);
+  }
+};
+
+
+  
+  
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [selectedMood, setSelectedMood] = useState('😊');
   const [showModal, setShowModal] = useState(false);
@@ -23,7 +81,31 @@ export default function HabitTracker() {
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
   const [badges, setBadges] = useState([]);
+ useEffect(()=> {
+   const addpointsandstreak= async()=> {
+     const token=localStorage.getItem('token')
+     if(!token) return;
+    try {
+     let res= await fetch('http://localhost:5000/addingptstreak',{
+         method:"PUT",
+         headers: {
+          "Content-Type":"application/json",
+           Authorization: `Bearer ${token}`,
+         },
+         body:JSON.stringify({points,streak})
+         })
+         if(!res.ok) {
+          const errtext=await res.text();
+          console.log("failed to fetch (pt and streak)",errtext)
+         }
+    }
+    catch (e) {
+      console.log(e);
+    }
 
+   }
+   addpointsandstreak();
+   },[points,streak])
   const dayToIndex = {
     Sunday: 0,
     Monday: 1,
@@ -72,26 +154,32 @@ export default function HabitTracker() {
     }
 
     setHabits(updatedHabits);
+    syncHabits(updatedHabits);
     setShowModal(false);
   };
 
   const deleteHabit = (index) => {
-    setHabits(habits.filter((_, i) => i !== index));
+    const updatedHabits = habits.filter((_, i) => i !== index);
+    setHabits(updatedHabits);
+    syncHabits(updatedHabits);
   };
 
   const toggleHabitDone = (index) => {
     const updatedHabits = [...habits];
     const habit = updatedHabits[index];
     habit.done = !habit.done;
-    setHabits(updatedHabits);
+    if(typeof(habit.pointsEarned)!=="number" || isNaN(habit.pointsEarned))
+      habit.pointsEarned=0;
+   
 
     if (habit.done) {
-      const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+      const today = new Date().getDay(); 
       const targetDay = dayToIndex[habit.day];
       let daysEarly = targetDay - today;
       if (daysEarly < 0) daysEarly += 7;
 
       const earnedPoints = daysEarly * 10;
+      habit.pointsEarned=earnedPoints
       setPoints(prev => prev + earnedPoints);
 
       const newStreak = streak + 1;
@@ -104,8 +192,20 @@ export default function HabitTracker() {
         setBadges(prev => [...prev, "🥈 7-Day Streak"]);
       }
     } else {
-      setStreak(0); // Reset streak if unchecking
+  
+  const pointsToSubtract = habit.pointsEarned; 
+  setPoints(prev => {
+    const newPoints = prev - pointsToSubtract;
+    return newPoints >= 0 ? newPoints : 0;
+  });
+
+ 
+  habit.pointsEarned = 0;
+  setStreak(0);
+   
     }
+     setHabits(updatedHabits);
+     syncHabits(updatedHabits);
   };
 
   const today = new Date();
