@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Habit Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      width: 320px;
+      background-color: hsl(300, 75%, 90%);
+    }
+
+    #heading {
+      text-align: center;
+      color: hsl(300, 75%, 40%);
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #toggleAddFormBtn,
+    #showAddHabitBtn {
+      background-color: #2196F3;
+      margin-top: 10px;
+    }
+
+    #toggleAddFormBtn:hover,
+    #showAddHabitBtn:hover {
+      background-color: #0b7dda;
+    }
+
+    form {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    ul#habitList {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul#habitList li {
+      background: #eee;
+      padding: 6px;
+      margin: 5px 0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    #loginMessage {
+      color: red;
+      font-size: 13px;
+    }
+
+    .reward-emoji {
+      transition: opacity 0.5s ease;
+      font-size: 18px;
+      margin-left: 5px;
+      opacity: 0;
+    }
+
+    #addHabitForm {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="heading">Habit Tracker</div>
+
+  <div id="loginSection">
+    <h2>Login</h2>
+    <input type="text" id="email" placeholder="Email" /><br />
+    <input type="password" id="password" placeholder="Password" /><br />
+    <button id="loginBtn">Login</button>
+    <div id="loginMessage"></div>
+  </div>
+
+  <div id="mainSection" style="display:none;">
+    <button id="logoutBtn">Logout</button>
+    <ul id="habitList"></ul>
+
+    <button id="showAddHabitBtn">+ Add Habit</button>
+    <form id="addHabitForm">
+      <input type="text" id="title" placeholder="Habit Name" required /><br />
+    <input type="text" id="icon" placeholder="Icon (e.g. ✅)" /><br />
+      <input type="number" id="duration" placeholder="Duration (days)" required /><br />
+      <input type="text" id="time" placeholder="Time (e.g. 6:00 AM)" required /><br />
+      <input type="text" id="day" placeholder="Days (e.g. Mon, Tue)" required /><br />
+      <label><input type="checkbox" id="setReminder" /> Reminder</label><br />
+      <button type="submit">Add</button>
+    </form>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

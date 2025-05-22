@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "HabeoPrax Habit Tracker",
+  "version": "1.0",
+  "description": "Track habits, mark them done, and add new ones with daily reminders.",
+  "permissions": ["storage", "notifications", "alarms"],
+  "host_permissions": ["http://localhost:5000/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

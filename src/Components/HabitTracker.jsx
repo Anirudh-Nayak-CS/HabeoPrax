@@ -2,12 +2,70 @@ import React, { useState, useEffect } from 'react';
 import quotes from './quotes';
 
 export default function HabitTracker() {
-  const [habits, setHabits] = useState([
-    { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', day: 'Monday', done: false },
-    { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', day: 'Tuesday', done: false },
-    { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', day: 'Wednesday', done: false }
-  ]);
+  /*const [habits, setHabits] = useState([
+    { title: 'Meditate', icon: '🧘', duration: '15 mins', time: '4:30 p.m', day: ['Monday'], done: false },
+    { title: 'Walking', icon: '🚶', duration: '30 mins', time: '6:00 p.m', day: ['Tuesday'], done: false },
+    { title: 'Skipping', icon: '🤸', duration: '10 mins', time: '7:00 p.m', day: ['Wednesday'], done: false }
+  ]);*/
+   const [habits, setHabits] = useState([]);
+    const [hasFetched, setHasFetched] = useState(false);
+    const addHabit = (habit) => {
+  setHabits((prev) => [...prev, habit]);
+};
+    useEffect(() => {
+  const fetchHabits = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/habitdata', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setHabits(data.habits);
+        setHasFetched(true); // ✅ mark loaded
+      } else {
+        console.error('Failed to load habits:', data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching habits:', err);
+    }
+  };
+
+  fetchHabits();
+}, []);
+
+
+const syncHabits = async (updatedHabits) => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/habitdata", {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ habits: updatedHabits }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log("Failed to sync habits:", errorText);
+    }
+  } catch (e) {
+    console.log("Sync error:", e);
+  }
+};
+
    useEffect(() => {
+     if (!hasFetched) return; 
     const token=localStorage.getItem('token')
     console.log(habits)
     if(!token) return;
@@ -31,7 +89,7 @@ export default function HabitTracker() {
 
     }  
     addHabits(); 
-  },[habits])
+  },[habits,hasFetched])
   
   
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
@@ -108,25 +166,36 @@ export default function HabitTracker() {
     setShowModal(true);
   };
 
-  const saveHabit = () => {
-    if (formData.title.trim() === '') {
-      alert("Habit title cannot be empty.");
-      return;
-    }
-
-    const updatedHabits = [...habits];
-    if (editIndex !== null) {
-      updatedHabits[editIndex] = { ...formData, done: habits[editIndex].done };
-    } else {
-      updatedHabits.push({ ...formData, done: false });
-    }
-
-    setHabits(updatedHabits);
-    setShowModal(false);
+const saveHabit = () => {
+  const newHabit = {
+    ...formData,
+    done: false,               // ensure 'done' is false when adding
+    day: [formData.day],      // wrap 'day' in array
   };
 
-  const deleteHabit = (index) => {
-    setHabits(habits.filter((_, i) => i !== index));
+  if (editIndex !== null) {
+    // Edit existing habit
+    setHabits((prev) => {
+      const updated = [...prev];
+      updated[editIndex] = { ...formData, day: [formData.day] }; // wrap day for edited too
+      return updated;
+    });
+  } else {
+    // Add new habit
+    setHabits((prev) => [...prev, newHabit]);
+  }
+
+  // Reset form and state
+  setShowModal(false);
+  setFormData({ title: '', icon: '', duration: '', time: '', day: '', done: false });
+  setEditIndex(null);
+};
+
+
+ const deleteHabit = (index) => {
+    const updatedHabits = habits.filter((_, i) => i !== index);
+    setHabits(updatedHabits);
+    syncHabits(updatedHabits);
   };
 
   const toggleHabitDone = (index) => {
@@ -139,7 +208,12 @@ export default function HabitTracker() {
 
     if (habit.done) {
       const today = new Date().getDay(); 
-      const targetDay = dayToIndex[habit.day];
+      console.log('habit.day:', habit.day);
+      const targetDay = dayToIndex[habit.day[0]];
+      if (typeof targetDay !== 'number') {
+      console.error('Invalid habit day:', habit.day);
+      habit.pointsEarned = 0;
+    } else {
       let daysEarly = targetDay - today;
       if (daysEarly < 0) daysEarly += 7;
 
@@ -156,6 +230,7 @@ export default function HabitTracker() {
       if (newStreak === 7 && !badges.includes("🥈 7-Day Streak")) {
         setBadges(prev => [...prev, "🥈 7-Day Streak"]);
       }
+    }
     } else {
   
   const pointsToSubtract = habit.pointsEarned; 
@@ -170,6 +245,7 @@ export default function HabitTracker() {
    
     }
      setHabits(updatedHabits);
+     syncHabits(updatedHabits);
   };
 
   const today = new Date();
@@ -248,13 +324,27 @@ export default function HabitTracker() {
             <h3 className="text-2xl font-semibold text-purple-800">Your Habits</h3>
             <button onClick={openAddModal} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">+ Add a New Habit</button>
           </div>
+           
+           <button
+            onClick={() => addHabit({
+              title: 'New Habit',
+              icon: '🔥',
+              duration: '10 mins',
+              time: '8:00 a.m',
+              day: ['Thursday'],
+              done: false
+            })}
+            className="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+          >
+            Quick Add Habit
+          </button>
 
           <div className="space-y-4">
             {habits.map((habit, index) => (
               <div key={index} className={`rounded-xl p-4 shadow-md flex justify-between items-center ${habit.done ? 'bg-purple-200 text-purple-800' : 'bg-purple-300 text-white'}`}>
                 <div>
                   <h4 className={`text-lg font-semibold ${habit.done ? 'line-through' : ''}`}>{habit.title}</h4>
-                  <p>{habit.duration} | {habit.time} | {habit.day}</p>
+                  <p>{habit.duration} | {habit.time} | {habit.day.join(', ')}</p>
                 </div>
                 <div className="flex gap-3 items-center">
                   <button onClick={() => openEditModal(index)}>✏️</button>
@@ -350,7 +440,7 @@ export default function HabitTracker() {
       </div>
 
       <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-8">
-        <button title="Home" onClick={() => window.location.href = "/"}>🏠</button>
+        <button title="Home" onClick={() => window.location.href = "/home"}>🏠</button>
         <button title="Weekly Report" onClick={() => window.location.href = "/weekly-report"}>📈</button>
         <button title="Reminders">🔔</button>
         <button title="Settings">⚙️</button>
