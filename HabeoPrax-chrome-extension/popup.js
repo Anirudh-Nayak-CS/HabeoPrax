@@ -50,7 +50,7 @@ addHabitForm.addEventListener("submit", async (e) => {
     icon: document.getElementById("icon").value,
     duration: document.getElementById("duration").value,
     time: document.getElementById("time").value,
-    day: document.getElementById("day").value,
+    day: [document.getElementById("day").value],
     done: false,
     setReminder: document.getElementById("setReminder").checked,
     streakcount: 0,
