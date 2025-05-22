@@ -33,6 +33,7 @@ const HabitSchema = new mongoose.Schema({
     required: true, 
   },
  habits:  [ {
+  _id: false,
   title: {
     type: String,
     required: true,
