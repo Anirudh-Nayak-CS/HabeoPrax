@@ -142,9 +142,11 @@ app.post('/notify-completion', passport.authenticate('jwt', { session: false }),
       console.log("After pushing notification:", user.notifications.length);
       await user.save();
       console.log("✅ Notification saved to DB");
+
     }
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, message: 'Notification added' });
+
   } catch (e) {
     console.error("Notification error", e);
     res.status(500).json({ success: false, message: e.message });
