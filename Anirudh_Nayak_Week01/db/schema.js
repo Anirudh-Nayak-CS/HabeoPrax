@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+const notificationSchema = new mongoose.Schema({
+    type: { type: String, required: true },  // "quote" or "milestone"
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    read: { type: Boolean, default: false },
+});
+
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -23,7 +30,9 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  notifications: [notificationSchema],
    streak: Number,
+     token: String,
 });
 
 const HabitSchema = new mongoose.Schema({

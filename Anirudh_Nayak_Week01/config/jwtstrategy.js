@@ -1,3 +1,4 @@
+import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Usermodel,Habitmodel} from '../db/schema.js';
 import dotenv from 'dotenv';

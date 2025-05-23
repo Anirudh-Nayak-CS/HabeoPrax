@@ -3,13 +3,16 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import cron from 'node-cron';
 import bcrypt from 'bcrypt';
 import { connecttoDB, getDB } from './db/connection.js';  
 import { Usermodel, Habitmodel } from './db/schema.js';  
-import './config/jwtstrategy.js';
-
+import configurePassport from './config/jwtstrategy.js'; // 
+import { sendEmail, welcomeEmailHTML, addPoints } from './emailNotifications.js';
+import moment from 'moment'; 
 
 dotenv.config();  
+configurePassport(passport);
 import homeRoute from './homepage/addinghabit.js'
 import pointRoute from './homepage/addingptstreak.js'
 const app = express();
@@ -36,6 +39,12 @@ const saltRound = 10
           Usermodel.create(req.body)
             .then((data) => {
               console.log("User data: ",data)
+                   sendEmail({
+            to: data.email,
+            subject: "🎉 Welcome to HabeoPrax!",
+            html: welcomeEmailHTML({ name: data.username })
+          });
+
              return  res.status(201).json(data)
         })
             .catch((e) => {
@@ -66,6 +75,9 @@ const saltRound = 10
                 console.log("No user found try again")
                   return res.status(401).json("No user found try again")
                 }
+                     user.lastLogin = new Date();
+                     user.save();
+
                 const payload = {
                   id: user.id,
                   username: user.username,
@@ -102,6 +114,80 @@ const saltRound = 10
          return res.status(500).json(e)})
         })
     
+app.get('/notifications', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  const user = await Usermodel.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  console.log("Fetched notifications:", user.notifications);
+  res.json(user.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+});
+
+app.post('/notify-completion', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const user = await Usermodel.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const today = new Date().toDateString();
+    const alreadyNotified = user.notifications.some(n =>
+      n.message.includes("completed all your habits") &&
+      new Date(n.timestamp).toDateString() === today
+    );
+
+    if (!alreadyNotified) {
+      console.log("Before pushing notification:", user.notifications.length);
+      user.notifications.push({
+        type: 'completion',
+        message: `🎉 Awesome! You've completed all your habits for today. Keep it up!`,
+        timestamp: new Date()
+      });
+      console.log("After pushing notification:", user.notifications.length);
+      await user.save();
+      console.log("✅ Notification saved to DB");
+    }
+
+    res.status(200).json({ success: true });
+  } catch (e) {
+    console.error("Notification error", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+
+
+    cron.schedule('*/10 * * * *', async () => {
+  const now = new Date();
+  const users = await Usermodel.find();
+
+  for (const user of users) {
+    const userHabits = await Habitmodel.findOne({ userId: user._id });
+    if (!userHabits) continue;
+
+    for (const habit of userHabits.habits) {
+      const habitTime = moment(habit.time, ['h:mm A', 'HH:mm']); // 4:30 p.m => moment time
+      const nowTime = moment();
+
+      // Check if habit is set for today and it's over 1 hour late and not done
+      const today = nowTime.format('dddd');
+      const isToday = habit.day.includes(today);
+      const isLate = nowTime.diff(habitTime, 'minutes') > 60;
+      const notDone = !habit.done;
+
+      if (isToday && isLate && notDone) {
+        const alreadyNotified = user.notifications.some(n => 
+          n.message.includes(habit.title) &&
+          moment(n.timestamp).isAfter(moment().subtract(6, 'hours'))
+        );
+        if (!alreadyNotified) {
+          user.notifications.push({
+            type: 'reminder',
+            message: `⏰ You haven't completed "${habit.title}" scheduled for ${habit.time}. Stay on track!`,
+            timestamp: new Date(),
+          });
+          await user.save();
+        }
+      }
+    }
+  }
+});
         console.log("db connection :D")
       
           
