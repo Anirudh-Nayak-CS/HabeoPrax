@@ -266,7 +266,10 @@ const saveHabit = () => {
   const allDone = todaysHabits.length > 0 && todaysHabits.every(h => h.done);
 
   if (allDone) {
-    const token = localStorage.getItem('token');
+    let token = localStorage.getItem('token');
+     if (!token.startsWith('Bearer ')) {
+  token = `Bearer ${token}`;
+}
     try {
       await fetch('http://localhost:5000/notify-completion', {
         method: 'POST',
