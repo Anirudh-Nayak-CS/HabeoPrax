@@ -103,6 +103,7 @@ const syncHabits = async (updatedHabits) => {
     day: ''
   });
   const [editIndex, setEditIndex] = useState(null);
+const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -167,38 +168,45 @@ const syncHabits = async (updatedHabits) => {
   };
 
 const saveHabit = () => {
-  const newHabit = {
-    ...formData,
-    done: false,               // ensure 'done' is false when adding
-    day: [formData.day],      // wrap 'day' in array
-  };
-
-  if (editIndex !== null) {
-    // Edit existing habit
-    setHabits((prev) => {
-      const updated = [...prev];
-      updated[editIndex] = { ...formData, day: [formData.day] }; // wrap day for edited too
-      return updated;
-    });
-  } else {
-    // Add new habit
-    setHabits((prev) => [...prev, newHabit]);
+  if (formData.title.trim() === '') {
+    showNotification("Please add a habit title", "error");
+    return;
   }
 
-  // Reset form and state
+  const updatedHabits = [...habits];
+
+  if (editIndex !== null) {
+    // Edit existing habit, preserve `done` state
+    updatedHabits[editIndex] = {
+      ...formData,
+      day: [formData.day],
+      done: habits[editIndex].done
+    };
+    showNotification("Habit updated successfully! Keep going!", "success");
+  } else {
+    // Add new habit
+    updatedHabits.push({
+      ...formData,
+      done: false,
+      day: [formData.day]
+    });
+    showNotification("New habit added! You're on the path to greatness!", "success");
+  }
+
+  setHabits(updatedHabits);
   setShowModal(false);
   setFormData({ title: '', icon: '', duration: '', time: '', day: '', done: false });
   setEditIndex(null);
 };
 
-
- const deleteHabit = (index) => {
+ const deleteHabit =(index) => {
     const updatedHabits = habits.filter((_, i) => i !== index);
+      showNotification("Habit removed. Making room for new growth!", "info");
     setHabits(updatedHabits);
     syncHabits(updatedHabits);
   };
 
-  const toggleHabitDone = (index) => {
+  const toggleHabitDone = async (index) => {
     const updatedHabits = [...habits];
     const habit = updatedHabits[index];
     habit.done = !habit.done;
@@ -246,6 +254,39 @@ const saveHabit = () => {
     }
      setHabits(updatedHabits);
      syncHabits(updatedHabits);
+
+      const message = updatedHabits[index].done
+    ? `Congratulations! "${updatedHabits[index].title}" completed. Keep the momentum going!`
+    : `"${updatedHabits[index].title}" marked as incomplete. You can do it next time!`;
+  showNotification(message, updatedHabits[index].done ? "success" : "info");
+
+  // Check if all today's habits are done
+  const today = new Date().toLocaleString('en-US', { weekday: 'long' });
+  const todaysHabits = updatedHabits.filter(h => h.day.includes(today));
+  const allDone = todaysHabits.length > 0 && todaysHabits.every(h => h.done);
+
+  if (allDone) {
+    const token = localStorage.getItem('token');
+    try {
+      await fetch('http://localhost:5000/notify-completion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      });
+    } catch (err) {
+      console.error("Error sending completion notification:", err);
+    }
+  }
+  };
+    const showNotification = (message, type) => {
+    setNotification({ show: true, message, type });
+    
+    // Hide notification after 2 seconds
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: '' });
+    }, 2000);
   };
 
   const today = new Date();
@@ -280,6 +321,15 @@ const saveHabit = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 px-4 sm:px-8">
+       {notification.show && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 ${
+          notification.type === 'success' ? 'bg-green-500' : 
+          notification.type === 'error' ? 'bg-red-500' : 
+          'bg-blue-500'
+        } text-white font-medium`}>
+          {notification.message}
+        </div>
+      )}
       <header className="flex justify-between items-center mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl p-4 shadow-md">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="logo" className="w-12 h-12 rounded-full object-contain" />
@@ -442,7 +492,7 @@ const saveHabit = () => {
       <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-8">
         <button title="Home" onClick={() => window.location.href = "/home"}>🏠</button>
         <button title="Weekly Report" onClick={() => window.location.href = "/weekly-report"}>📈</button>
-        <button title="Reminders">🔔</button>
+        <button title="Reminders" onClick={() => window.location.href = "/notifications"}>🔔</button>
         <button title="Settings">⚙️</button>
       </nav>
     </div>

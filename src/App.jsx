@@ -6,6 +6,7 @@ import RegisterPage from './Components/RegisterPage.jsx';
 import HabitTracker from './Components/HabitTracker.jsx';
 import WeeklyReport from './Components/WeeklyReport.jsx';
 import './index.css';
+import NotificationPage from './Components/NotificationPage.jsx';
 
 
 
@@ -22,6 +23,8 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/home" element={<HabitTracker />} />
       <Route path="/weekly-report" element={<WeeklyReport />} />
+      <Route path="/notifications" element={<NotificationPage/>}/>
+      
   </Routes>
 
 </>
